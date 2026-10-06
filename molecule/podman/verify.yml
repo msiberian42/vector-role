@@ -1,0 +1,22 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Check Vector binary
+      ansible.builtin.stat:
+        path: /usr/local/bin/vector
+      register: vector_binary
+
+    - name: Assert Vector binary is installed
+      ansible.builtin.assert:
+        that:
+          - vector_binary.stat.exists
+          - vector_binary.stat.islnk
+
+    - name: Validate Vector configuration
+      ansible.builtin.command:
+        argv:
+          - /usr/local/bin/vector
+          - validate
+          - /etc/vector/vector.toml
+      changed_when: false

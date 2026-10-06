@@ -1,0 +1,14 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    ansible_python_interpreter: >-
+      {{ '/usr/bin/python3.9'
+        if inventory_hostname == 'oraclelinux8'
+        else '/usr/bin/python3' }}
+  tasks:
+    - name: "Include vector-role"
+      include_role:
+        name: "pavel.vector_role"
+      vars:
+        vector_manage_service: false

@@ -1,5 +1,6 @@
 ---
 - name: Restart vector
+  when: vector_manage_service
   ansible.builtin.systemd:
     name: vector
     state: restarted

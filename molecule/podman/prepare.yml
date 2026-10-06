@@ -1,0 +1,8 @@
+---
+- name: Prepare instance
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install Python for Ansible
+      ansible.builtin.raw: dnf install -y python3
+      changed_when: false

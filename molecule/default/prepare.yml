@@ -1,0 +1,22 @@
+---
+- name: Prepare instances
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Install Python for Ansible
+      raw: |
+        if [ -f /etc/oracle-release ] && grep -q 'release 8' /etc/oracle-release; then
+          dnf install -y python39
+        elif command -v python3 >/dev/null 2>&1; then
+          exit 0
+        elif command -v dnf >/dev/null 2>&1; then
+          dnf install -y python3
+        elif command -v yum >/dev/null 2>&1; then
+          yum install -y python3
+        elif command -v apt-get >/dev/null 2>&1; then
+          apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y python3
+        else
+          echo "Unsupported package manager" >&2
+          exit 1
+        fi

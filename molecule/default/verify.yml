@@ -1,0 +1,77 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars_files:
+    - ../../defaults/main.yml
+  vars:
+    ansible_python_interpreter: >-
+      {{ '/usr/bin/python3.9'
+         if inventory_hostname == 'oraclelinux8'
+         else '/usr/bin/python3' }}
+
+  tasks:
+    - name: Collect Vector installation files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - /usr/local/bin/vector
+        - /etc/vector/vector.toml
+        - /var/lib/vector
+      register: vector_files
+
+    - name: Assert that Vector files are installed
+      ansible.builtin.assert:
+        that:
+          - vector_files.results[0].stat.exists
+          - vector_files.results[0].stat.islnk
+          - vector_files.results[1].stat.exists
+          - vector_files.results[1].stat.isreg
+          - vector_files.results[2].stat.exists
+          - vector_files.results[2].stat.isdir
+
+    - name: Validate Vector configuration
+      ansible.builtin.command:
+        argv:
+          - /usr/local/bin/vector
+          - validate
+          - /etc/vector/vector.toml
+      register: vector_config_validation
+      changed_when: false
+      failed_when: false
+
+    - name: Assert that Vector configuration is valid
+      ansible.builtin.assert:
+        that:
+          - vector_config_validation.rc == 0
+
+    - name: Get Vector version
+      ansible.builtin.command:
+        argv:
+          - /usr/local/bin/vector
+          - --version
+      register: vector_version_output
+      changed_when: false
+      failed_when: false
+
+    - name: Assert that the expected Vector version is installed
+      ansible.builtin.assert:
+        that:
+          - vector_version in vector_version_output.stdout
+
+    - name: Start Vector with the configured file
+      ansible.builtin.command:
+        argv:
+          - timeout
+          - "5"
+          - /usr/local/bin/vector
+          - --config
+          - /etc/vector/vector.toml
+      register: vector_start
+      changed_when: false
+      failed_when: false
+
+    - name: Assert that Vector kept running
+      ansible.builtin.assert:
+        that:
+          - vector_start.rc == 124

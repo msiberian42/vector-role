@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Include vector-role
+      ansible.builtin.include_role:
+        name: pavel.vector_role
+      vars:
+        vector_manage_service: false

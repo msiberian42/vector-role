@@ -4,6 +4,12 @@
     url: "https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-{{ vector_arch }}-unknown-linux-gnu.tar.gz"
     dest: "/tmp/vector-{{ vector_version }}.tar.gz"
     mode: "0644"
+    timeout: 60
+  register: vector_download
+  until: vector_download is succeeded
+  retries: 5
+  delay: 10
+  throttle: 1
 
 - name: Create Vector directory
   ansible.builtin.file:
@@ -46,6 +52,7 @@
   notify: Restart vector
 
 - name: Deploy Vector systemd unit
+  when: vector_manage_service
   ansible.builtin.template:
     src: "vector.service.j2"
     dest: "/etc/systemd/system/vector.service"
